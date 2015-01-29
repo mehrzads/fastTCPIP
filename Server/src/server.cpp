@@ -51,14 +51,15 @@ int intitializeSocket(int portno, int &sockfd){
 
 
 
-void monitor(int portno, int size){
+void monitor(int portno, int size, int count){
     int sockfd, newsockfd;
     newsockfd = intitializeSocket(portno, sockfd);
     float * data = (float *) malloc( size * sizeof(float));
-    
-    recData(newsockfd, data, size);
-//    sendData(newsockfd, data, size);
 
+    for (int it =0; it < count; it++)
+	    recData(newsockfd, data, size * sizeof(float));
+//    sendData(newsockfd, data, size);
+#if 0
     int count = 0;
     int perror = 0;
     for (int i = 0; i < size; i++){
@@ -77,7 +78,7 @@ void monitor(int portno, int size){
       else
 	printf("Failed\n");
 
-
+#endif
     free(data);
     close(newsockfd);
     close(sockfd);
@@ -85,15 +86,16 @@ void monitor(int portno, int size){
 } 
 int main(int argc, char *argv[])
 {
-    if (argc < 2) {
+/*    if (argc < 2) {
         fprintf(stderr,"ERROR, no port provided\n");
         exit(1);
-    }
-    int portno = atoi(argv[1]);
-    int size   = atoi(argv[2]);
+    }*/
+    int portno = 51717;//atoi(argv[1]);
+    int size   = 32768;//atoi(argv[2]);
+    int count = 1000;
 
 
 
-    monitor(portno, size);
+    monitor(portno, size, count);
     return 0; 
 }
