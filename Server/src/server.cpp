@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
         exit(1);
     }*/
     int portno = 51717;//atoi(argv[1]);
-    int size   = 32768;//atoi(argv[2]);
-    int count = 1000;
+    int size   = 32768000;//atoi(argv[2]);
+    int count = 3;
 
 
 
