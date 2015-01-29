@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
   char * hostname = argv[1];
   int portno = 51717;//atoi(argv[2]);
   int size = 32768000;//atoi(argv[3]);
-  int nThreads = 8;
+  int nThreads = 4;
 
   for (int i = 0; i < nThreads; i++)
     cloudInit(portno + i, hostname, sockets[i]);
