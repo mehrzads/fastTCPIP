@@ -25,8 +25,8 @@ int main(int argc, char *argv[])
   }
   char * hostname = argv[1];
   int portno = 51717;//atoi(argv[2]);
-  int size = 32768;//atoi(argv[3]);
-  int count = 1000;
+  int size = 32768000;//atoi(argv[3]);
+  int count = 3;
 
   cloudInit(portno, hostname, sockfd);
   printf("%d\n",size);
