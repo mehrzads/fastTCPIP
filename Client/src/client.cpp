@@ -5,18 +5,39 @@
  *
  */
 
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <limits.h> 
+#include <unistd.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <chrono>
+#include <utility>
+#include <limits.h>
+#include <chrono>
+#include <math.h> 
 #include "cloud.h"
 #include "cloudTimer.h"
+using namespace std;
+
+void *sendThread(void *arg){
+  struct TCPTransfer* tcpTransfer =   ((struct TCPTransfer*)arg);
+  size_t start = tcpTransfer->ID * tcpTransfer-> step;
+//  size_t end = (start + tcpTransfer-> step > tcpTransfer->size)?tcpTransfer->size:start + tcpTransfer-> step ;
+  size_t end = min(start + tcpTransfer-> step, tcpTransfer->size);
+  cloudSend(tcpTransfer->socket,  tcpTransfer->data + start,  end);
+  return NULL;
+}
+
 
 int main(int argc, char *argv[])
 {
-  int sockfd;
+  int sockets[MAXTHREADS];
+  int thread_cr_res = 0, thread_join_res;
+  pthread_t *threads =(pthread_t *) malloc(MAXTHREADS * sizeof(pthread_t));
+
   
   // Reading the arguments
   if (argc < 1) {
@@ -26,9 +47,11 @@ int main(int argc, char *argv[])
   char * hostname = argv[1];
   int portno = 51717;//atoi(argv[2]);
   int size = 32768000;//atoi(argv[3]);
-  int count = 3;
+  int nThreads = 4;
 
-  cloudInit(portno, hostname, sockfd);
+  for (int i = 0; i < nThreads; i++)
+    cloudInit(portno + i, hostname, sockets[i]);
+
   printf("%d\n",size);
 
   float * A = (float *) malloc( size * sizeof(float));
@@ -38,16 +61,36 @@ int main(int argc, char *argv[])
       A[i] = i;
       C[i] = 0;
   }
+  size_t step = size * sizeof(float) / nThreads;
 
   CloudTimer cloudTimer;
   cloudTimer.start();
   
-  for (int i = 0; i < count; i++)
-    cloudSend(sockfd,  A,  size * sizeof(float));
+  for(int i = 0; i < nThreads; i++){
+    struct TCPTransfer tp;
+    tp.data = static_cast<char *>(static_cast<void *>(A));
+    tp.size = size * sizeof(float);
+    tp.step = step;
+    tp.socket = sockets[i];
+    tp.ID = i;
+    thread_cr_res = pthread_create(&threads[i], NULL, sendThread, (void*)(&tp));
+    if(thread_cr_res != 0){
+      fprintf(stderr,"THREAD CREATE ERROR");
+      return (-1);
+    }
+  }
+  /* Later edit, joining the threads */
+  for (int i = 0; i < nThreads; i++){
+    thread_join_res = pthread_join(threads[i], NULL);
+    if(thread_join_res != 0){
+      fprintf(stderr, "JOIN ERROR");
+      return (-1);
+    }       
+  }
   
   cloudTimer.end();    
   double time_in_seconds = cloudTimer.getDurationInSeconds();
-  printf("Upload rate %f Gbps\n", (count * size * sizeof(float) * 8  )/(1024 * 1024 *1024 *time_in_seconds) );
+  printf("Upload rate %f Gbps\n", (size * sizeof(float) * 8  )/(1024 * 1024 *1024 *time_in_seconds) );
 #if 0  
   cloudTimer.start();
 
@@ -68,6 +111,8 @@ int main(int argc, char *argv[])
 #endif
   free(A);
   free(C);
-  cloudFinish(sockfd);
+  free(threads);
+  for (int i = 0; i < nThreads; i++)
+    cloudFinish(sockets[i]);
   return 0;
 }

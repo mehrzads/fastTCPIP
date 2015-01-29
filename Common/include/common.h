@@ -3,6 +3,7 @@
  */
 #ifndef COMMON_H
 #  define COMMON_H
+#define MAXTHREADS 16
 enum cloudMemcpyKind{
    cloudMemcpyClientToCloud,
    cloudMemcpyCloudToClient
@@ -51,6 +52,14 @@ enum CLBLAS_TRANSPOSE{
   ClblasNoTrans = 0,
   ClblasTrans,
   ClblasConjTrans 
+};
+
+struct TCPTransfer {
+     char * data;
+     size_t size;
+     size_t step;
+     int socket;
+     int ID;
 };
 #endif /* ifndef COMMON_H */
 

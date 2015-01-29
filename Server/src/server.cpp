@@ -22,6 +22,13 @@ void error(const char *msg)
     exit(1);
 }
 
+void *recThread(void *arg){
+  struct TCPTransfer* tcpTransfer =   ((struct TCPTransfer*)arg);
+  size_t start = tcpTransfer->ID * tcpTransfer-> step;
+  size_t end = min(start + tcpTransfer-> step,  tcpTransfer->size);
+  recData(tcpTransfer->socket,  tcpTransfer->data + start,  end);
+  return NULL;
+}
 
 // Initializing the connection
 int intitializeSocket(int portno, int &sockfd){
@@ -51,14 +58,38 @@ int intitializeSocket(int portno, int &sockfd){
 
 
 
-void monitor(int portno, int size, int count){
-    int sockfd, newsockfd;
-    newsockfd = intitializeSocket(portno, sockfd);
-    float * data = (float *) malloc( size * sizeof(float));
+void monitor(int portno, int size, int nThreads){
+    int sockets1[MAXTHREADS];
+    int sockets2[MAXTHREADS];
+    int thread_cr_res = 0, thread_join_res;
+    pthread_t *threads =(pthread_t *) malloc(MAXTHREADS * sizeof(pthread_t));
 
-    for (int it =0; it < count; it++)
-	    recData(newsockfd, data, size * sizeof(float));
-//    sendData(newsockfd, data, size);
+    for (int i =0; i < nThreads; i++)
+      sockets2[i] = intitializeSocket(portno + i, sockets1[i]);
+    float * data = (float *) malloc( size * sizeof(float));
+    size_t step = size * sizeof(float) / nThreads;
+
+  for(int i = 0; i < nThreads; i++){
+    struct TCPTransfer tp;
+    tp.data = static_cast<char *>(static_cast<void *>(data));
+    tp.size = size * sizeof(float);
+    tp.step = step;
+    tp.socket = sockets2[i];
+    tp.ID = i;
+    thread_cr_res = pthread_create(&threads[i], NULL, recThread, (void*)(&tp));
+    if(thread_cr_res != 0){
+      fprintf(stderr,"THREAD CREATE ERROR");
+      return;
+    }
+  }
+  /* Later edit, joining the threads */
+  for (int i = 0; i < nThreads; i++){
+    thread_join_res = pthread_join(threads[i], NULL);
+    if(thread_join_res != 0){
+      fprintf(stderr, "JOIN ERROR");
+      return;
+    }       
+  }
 #if 0
     int count = 0;
     int perror = 0;
@@ -80,9 +111,12 @@ void monitor(int portno, int size, int count){
 
 #endif
     free(data);
-    close(newsockfd);
-    close(sockfd);
+    for (int i =0; i < nThreads; i++){
+      close(sockets1[i]);
+      close(sockets2[i]);
+    }
 
+  free(threads);
 } 
 int main(int argc, char *argv[])
 {
@@ -92,10 +126,10 @@ int main(int argc, char *argv[])
     }*/
     int portno = 51717;//atoi(argv[1]);
     int size   = 32768000;//atoi(argv[2]);
-    int count = 3;
+    int nThreads = 4;
 
 
 
-    monitor(portno, size, count);
+    monitor(portno, size, nThreads);
     return 0; 
 }

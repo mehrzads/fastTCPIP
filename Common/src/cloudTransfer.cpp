@@ -29,7 +29,7 @@ cloudError_t recMessage(int socketID, std::string &message){
 cloudError_t sendData(int socketID, const void * data, size_t size){
   register size_t sent = 0;
   register size_t n = 0;
-  register const char *  buf = static_cast<const char *>(data);
+  const char *  buf = static_cast<const char *>(data);
   while (sent < size){
     n = write(socketID, buf + sent, size - sent);
     if (n < 0) return CloudErrorWrite;
@@ -41,7 +41,7 @@ cloudError_t sendData(int socketID, const void * data, size_t size){
 cloudError_t recData(int socketID, void * data, size_t size){
   register size_t sent = 0;
   register size_t n = 0;
-  register char *  buf = static_cast<char *>(data);
+  char *  buf = static_cast<char *>(data);
   while (sent < size){
     //static casts are added to remove the warning
     n = read(socketID, buf + sent, size - sent);
