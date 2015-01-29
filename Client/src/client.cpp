@@ -25,9 +25,9 @@ using namespace std;
 void *sendThread(void *arg){
   struct TCPTransfer* tcpTransfer =   ((struct TCPTransfer*)arg);
   size_t start = tcpTransfer->ID * tcpTransfer-> step;
-  size_t end = min(start + tcpTransfer-> step, tcpTransfer->size);
-  printf("%d\t%d\t%d\n" , tcpTransfer->ID, start,end);
-  cloudSend(tcpTransfer->socket,  tcpTransfer->data + start,  end);
+  size_t step = min(tcpTransfer-> step, tcpTransfer->size - start);
+  printf("%d\t%d\t%d\n" , tcpTransfer->ID, start,start + step);
+  cloudSend(tcpTransfer->socket,  tcpTransfer->data + start,  step);
   return NULL;
 }
 

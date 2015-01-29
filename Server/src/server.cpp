@@ -25,8 +25,8 @@ void error(const char *msg)
 void *recThread(void *arg){
   struct TCPTransfer* tcpTransfer =   ((struct TCPTransfer*)arg);
   size_t start = tcpTransfer->ID * tcpTransfer-> step;
-  size_t end = min(start + tcpTransfer-> step,  tcpTransfer->size);
-  recData(tcpTransfer->socket,  tcpTransfer->data + start,  end);
+  size_t step = min(tcpTransfer-> step, tcpTransfer->size - start);
+  recData(tcpTransfer->socket,  tcpTransfer->data + start,  step);
   return NULL;
 }
 
