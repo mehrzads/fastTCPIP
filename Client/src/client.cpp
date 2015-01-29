@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   float * C = (float *) malloc( size * sizeof(float));
     
   for (int i = 0; i < size; i++){
-      A[i] = float(rand())/INT_MAX;
+      A[i] = i;
       C[i] = 0;
   }
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
   printf("Upload rate %f Gbps\n", (size * sizeof(float) * 8  )/(1024 * 1024 *1024 *time_in_seconds) );
   cloudTimer.start();
 
-  cloudRec(sockfd,  C,  size * sizeof(float));
+//  cloudRec(sockfd,  C,  size * sizeof(float));
   
   cloudTimer.end();    
   time_in_seconds = cloudTimer.getDurationInSeconds();

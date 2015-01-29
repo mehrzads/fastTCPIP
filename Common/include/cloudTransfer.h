@@ -17,7 +17,7 @@
 void print(std::string message);
 cloudError_t sendMessage(int socketID, std::string message);
 cloudError_t recMessage(int socketID, std::string &message);
-cloudError_t sendData(int socketID, const void * data, size_t size);
+cloudError_t sendData(int socketID, void * data, size_t size);
 cloudError_t recData(int socketID, void * data, size_t size);
 
 #endif /* ifndef CLOUDTRANSFER_H */

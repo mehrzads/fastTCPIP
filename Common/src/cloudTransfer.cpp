@@ -26,9 +26,13 @@ cloudError_t recMessage(int socketID, std::string &message){
   return CloudSuccess;
 }
 
-cloudError_t sendData(int socketID, const void * data, size_t size){
-  int n = write(socketID, data, size);
-  if (n < 0) return CloudErrorWrite;
+cloudError_t sendData(int socketID, void * data, size_t size){
+  unsigned int sent = 0;
+  while (sent < size){
+    int n = write(socketID, static_cast<void *>(static_cast<char *>(data) + sent), size - sent);
+    if (n < 0) return CloudErrorWrite;
+    sent += n;
+  }
   return CloudSuccess;
 }
 

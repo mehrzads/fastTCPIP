@@ -57,7 +57,26 @@ void monitor(int portno, int size){
     float * data = (float *) malloc( size * sizeof(float));
     
     recData(newsockfd, data, size);
-    sendData(newsockfd, data, size);
+//    sendData(newsockfd, data, size);
+
+    int count = 0;
+    int perror = 0;
+    for (int i = 0; i < size; i++){
+      if (data[i] != i){
+	perror = 1;
+	if (count < 10)
+	{
+	  count++;
+	  printf("%d\t%f\n",i , data[i]);
+	}
+      }
+
+    }
+      if (perror == 0)
+	printf("Passed\n");
+      else
+	printf("Failed\n");
+
 
     free(data);
     close(newsockfd);
