@@ -26,7 +26,6 @@ void *sendThread(void *arg){
   struct TCPTransfer* tcpTransfer =   ((struct TCPTransfer*)arg);
   size_t start = tcpTransfer->ID * tcpTransfer-> step;
   size_t step = min(tcpTransfer-> step, tcpTransfer->size - start);
-  printf("%d\t%d\t%d\n" , tcpTransfer->ID, start,start + step);
   cloudSend(tcpTransfer->socket,  tcpTransfer->data + start,  step);
   return NULL;
 }
@@ -48,7 +47,7 @@ int main(int argc, char *argv[])
   char * hostname = argv[1];
   int portno = 51717;//atoi(argv[2]);
   int size = 32768000;//atoi(argv[3]);
-  int nThreads = 4;
+  int nThreads = 8;
 
   for (int i = 0; i < nThreads; i++)
     cloudInit(portno + i, hostname, sockets[i]);
