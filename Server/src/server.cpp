@@ -63,6 +63,7 @@ void monitor(int portno, int size, int nThreads){
     int sockets2[MAXTHREADS];
     int thread_cr_res = 0, thread_join_res;
     pthread_t *threads =(pthread_t *) malloc(MAXTHREADS * sizeof(pthread_t));
+    struct TCPTransfer * tp = (struct TCPTransfer *) malloc(MAXTHREADS * sizeof(struct TCPTransfer));
 
     for (int i =0; i < nThreads; i++)
       sockets2[i] = intitializeSocket(portno + i, sockets1[i]);
@@ -70,13 +71,12 @@ void monitor(int portno, int size, int nThreads){
     size_t step = size * sizeof(float) / nThreads;
 
   for(int i = 0; i < nThreads; i++){
-    struct TCPTransfer tp;
-    tp.data = static_cast<char *>(static_cast<void *>(data));
-    tp.size = size * sizeof(float);
-    tp.step = step;
-    tp.socket = sockets2[i];
-    tp.ID = i;
-    thread_cr_res = pthread_create(&threads[i], NULL, recThread, (void*)(&tp));
+    tp[i].data = static_cast<char *>(static_cast<void *>(data));
+    tp[i].size = size * sizeof(float);
+    tp[i].step = step;
+    tp[i].socket = sockets2[i];
+    tp[i].ID = i;
+    thread_cr_res = pthread_create(&threads[i], NULL, recThread, (void*)(&tp[i]));
     if(thread_cr_res != 0){
       fprintf(stderr,"THREAD CREATE ERROR");
       return;
@@ -117,6 +117,7 @@ void monitor(int portno, int size, int nThreads){
     }
 
   free(threads);
+  free(tp);
 } 
 int main(int argc, char *argv[])
 {

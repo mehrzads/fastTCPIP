@@ -25,8 +25,8 @@ using namespace std;
 void *sendThread(void *arg){
   struct TCPTransfer* tcpTransfer =   ((struct TCPTransfer*)arg);
   size_t start = tcpTransfer->ID * tcpTransfer-> step;
-//  size_t end = (start + tcpTransfer-> step > tcpTransfer->size)?tcpTransfer->size:start + tcpTransfer-> step ;
   size_t end = min(start + tcpTransfer-> step, tcpTransfer->size);
+  printf("%d\t%d\t%d\n" , tcpTransfer->ID, start,end);
   cloudSend(tcpTransfer->socket,  tcpTransfer->data + start,  end);
   return NULL;
 }
@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
   int sockets[MAXTHREADS];
   int thread_cr_res = 0, thread_join_res;
   pthread_t *threads =(pthread_t *) malloc(MAXTHREADS * sizeof(pthread_t));
+  struct TCPTransfer * tp = (struct TCPTransfer *) malloc(MAXTHREADS * sizeof(struct TCPTransfer));
 
   
   // Reading the arguments
@@ -61,19 +62,18 @@ int main(int argc, char *argv[])
       A[i] = i;
       C[i] = 0;
   }
-  size_t step = size * sizeof(float) / nThreads;
+  size_t step = (size * sizeof(float)) / nThreads;
 
   CloudTimer cloudTimer;
   cloudTimer.start();
   
   for(int i = 0; i < nThreads; i++){
-    struct TCPTransfer tp;
-    tp.data = static_cast<char *>(static_cast<void *>(A));
-    tp.size = size * sizeof(float);
-    tp.step = step;
-    tp.socket = sockets[i];
-    tp.ID = i;
-    thread_cr_res = pthread_create(&threads[i], NULL, sendThread, (void*)(&tp));
+    tp[i].data = static_cast<char *>(static_cast<void *>(A));
+    tp[i].size = size * sizeof(float);
+    tp[i].step = step;
+    tp[i].socket = sockets[i];
+    tp[i].ID = i;
+    thread_cr_res = pthread_create(&threads[i], NULL, sendThread, (void*)(&tp[i]));
     if(thread_cr_res != 0){
       fprintf(stderr,"THREAD CREATE ERROR");
       return (-1);
@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
   free(A);
   free(C);
   free(threads);
+  free(tp);
   for (int i = 0; i < nThreads; i++)
     cloudFinish(sockets[i]);
   return 0;
